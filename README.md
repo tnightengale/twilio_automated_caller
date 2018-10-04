@@ -3,7 +3,7 @@ An autodialer for student painting company to automatically navigate the company
 
 
 ## Steps to use program:
-**Note you must be affiliated with Student Works painting and have a login for their portal, SIMON**
+**Note to use this tool you must be affiliated with Student Works painting and have a login for their portal, SIMON.**
 
 1. Create virtual enviroment and install requirements.txt
 2. Visit the forked Twilio VoIP repo: https://github.com/tnightengale/client-quickstart-python and follow the set-up instructions
