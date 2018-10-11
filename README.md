@@ -5,7 +5,15 @@ An autodialer for student painting company to automatically navigate the company
 ## Steps to use program:
 **Note to use this tool you must be affiliated with Student Works painting and have a login for their portal, SIMON.**
 
-1. Create virtual enviroment and install requirements.txt
+
+1. To use this program you need to install python packages. To do this you need pip!
+    1. Open the terminal on your computer: search your mac for 'terminal'. 
+    2. **NOTE**
+    
+
+
+
+Create virtual enviroment and install requirements.txt
 2. Visit the forked Twilio VoIP repo: https://github.com/tnightengale/client-quickstart-python and follow the set-up instructions
     * You will also need to create a paid twilio account as part of this process.
     * Once you have the 4 credentials laidout in the README.md of the Twilio VoIP repo, ensure that you run the command `$ cp .env.example .env` to create a copy of the `.env.example` credential file. Then run `$ open -a TextEdit .env` and replace the values `.env ` with your credentials. Continue following the Twilio VoIP README.md setup instructions. 
