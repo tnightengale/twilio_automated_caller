@@ -15,7 +15,7 @@ An autodialer for student painting company to automatically navigate the company
     
     ![Alt text](resources/ss2.png?raw=True 'Terminal')
     
-    3. Then type `python get-pip.py` into terminal and and hit enter.
+    3. Then type `sudo python get-pip.py` into terminal and and hit enter.
   
 2. **Create virtual enviroment and install requirements.txt**
     1. **NOTE:** The rest of the set up instructions require you to enter commands in terminal, like so : `$ {your command here}`.
