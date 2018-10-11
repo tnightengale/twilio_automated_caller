@@ -11,7 +11,7 @@ An autodialer for student painting company to automatically navigate the company
     
     ![Alt text](resources/ss1.png?raw=True 'Terminal')
     
-    2. Type `curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py` into terminal as so, and hit enter:
+    2. Copy and paste this command: `curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py` into terminal as so, and hit enter:
     
     ![Alt text](resources/ss2.png?raw=True 'Terminal')
     
