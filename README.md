@@ -7,7 +7,8 @@ An autodialer for student painting company to automatically navigate the company
 
 
 1. To use this program you need to install python packages. To do this you need pip!
-    1. Open the terminal on your computer: search your mac for 'terminal'. 
+    1. Open the terminal on your computer: search your mac for 'terminal'.
+    ![Alt text](resources/ss1.png?raw=True 'Terminal')
     2. **NOTE**
     
 
