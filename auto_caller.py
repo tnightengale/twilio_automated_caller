@@ -1,125 +1,94 @@
-#import selenium
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Oct 14 12:18:46 2018
+
+@author: tnightengale
+"""
 from selenium import webdriver
-#import twilio
-#import subprocess
+from selenium.webdriver.chrome.options import Options
 import time
 from pynput import keyboard
 import os
 from termcolor import colored
+import sys
 
 # workflow
-def main():
+def main(call_count = 0):
+    # -----------
+    # Set Globals
+    # -----------
+    
     global talking
     talking = False
+    
+    #-------------
+    # Driver Setup
+    # ------------
+    
+    headless = Options()
+    headless.add_argument("--headless")
+    headless.add_argument("---info-bars")
+    headless.add_argument("--use-fake-ui-for-media-stream")
+    #chrome_exe_path = os.path.abspath('chromedriver')
+    chrome_exe_path = os.path.join(sys._MEIPASS, "chromedriver")
+    
+    # -- SIMON driver -- #
+    driver = webdriver.Chrome(chrome_exe_path, options = headless)
+    
+    # -- Twilio webapp driver -- #
+    app = webdriver.Chrome(chrome_exe_path, options = headless)
+    
+    # instructions
+    
+    call_length = instructions()
+    
     # ----------
     # Logging in
     # ----------
     
-    logged_in = False
-    while logged_in == False:
-        chrome_exe_path = os.path.abspath('chromedriver')
-        driver = webdriver.Chrome(chrome_exe_path)
-        driver.get('http://www.studentworks.net/')
-        
-        email = input('Enter your Simon login email: ')
-        password = input('Enter your Simon password: ')    
-        #email = 'tnightengale@gmail.com'
-        #password = 'j#2smn915915E'
-        
-        email_input = driver.find_element_by_id('user_email')
-        password_input = driver.find_element_by_id('user_password')
-        
-        email_input.send_keys(email)
-        password_input.send_keys(password)
-        
-        current = driver.current_url
-        driver.find_element_by_name('commit').click()
-        time.sleep(3)
-        
-        if current != driver.current_url:
-            logged_in = True
-            continue
-        else:
-            print('\nInvalid login. Re-enter credentials: \n')
-            continue
-        
+    auth = simon_login(driver)   
     
     # -------------------
     # Go to phone numbers
     # -------------------
     
-    driver.get('http://www.studentworks.net/recruiting/applicants/list?unreachables=1')
+    next_url(driver,'http://www.studentworks.net/recruiting/applicants/list?unreachables=1')
     
-    # find first name: 21st element in tag_names('a')
+    # find first name: 30th element in tag_names('a')
     
-    atag_elements = driver.find_elements_by_tag_name('a')
+    unreachables = driver.find_elements_by_tag_name('a')[30]
     
-    atag_elements[21].click()
+    next_click(driver, unreachables)
     
     # ----------------
     # load webdial app
     # ----------------
     
-    #input('Ensure you have run the twilio app.py in another terminal.\nPress any key to continue: ')
-    
-    app = webdriver.Chrome(chrome_exe_path)
-    app.get('http://localhost:5000/')
-    
-    #input('Click over to twilio app page. Then press any key to continue: ')
+    #next_url(app,'https://14de8b3c.ngrok.io/')
+    app_login(app, auth)
     
     # ------------------
     # Begin calling loop
     # ------------------
     
-    #call_button = app.find_element_by_id('button-call')
-    #hangup_button = app.find_element_by_id('button-hangup')
-    #number_input = app.find_element_by_id('phone-number')
-    
-    allowances = False
-    print('Call own phone to set allowances for microphone access on app')
-    my_number = input('Enter 10 digit phone number, no spaces: ')
-    app.find_element_by_id('phone-number').send_keys(my_number)
-    app.find_element_by_id('button-call').click()
-    while allowances == False:
-        try:
-            input('Go to webpage with the grey background and click "accept" on the microphone prompt. \nThen press enter to continue: ')      
-            app.find_element_by_id('button-hangup').click()
-            allowances = True
-        except:
-            continue
-        
-    
-    call_count = 0
-    call_length = 25
     print('Looping list calls. Current call length is {} seconds.'.format(call_length))
     
     while True:
-        # current call information
-        first_name = driver.find_element_by_id('applicant_first_name').get_attribute('value')
-        last_name = driver.find_element_by_id('applicant_last_name').get_attribute('value')
-        current_name = first_name + ' ' + last_name
-        current_name = colored(current_name, 'white', 'on_magenta')
-        phone_element = driver.find_element_by_id('applicant_phone1')
-        current_number = phone_element.get_attribute('value')
+        current_name = get_name(driver)
         
-        # clear old number
-        app.find_element_by_id('phone-number').clear()
+        current_number = get_number(driver)
         
-        # input number to twilio app
-        app.find_element_by_id('phone-number').send_keys(current_number)
-        
-        # call and mute first annoying twilio dial tone
-        #app.find_element_by_id('button-call').click()
-        os.system('osascript -e "set Volume 0"')
-        time.sleep(2.5)
-        os.system('osascript -e "set Volume 10"')
         talked = False
         
-        # initiate keyboard listener
+        #initiate_call(app,current_number)
+        
         alert = colored('Press "ctrl" to pause if answered: ', 'red')
-        print('\nCurrently calling {} at {}. {}'.format(current_name, current_number,alert))
+        print('\nCurrently calling {} at {}. {}'.format(current_name, current_number, alert))
+        
+        # initiate keyboard listener
         with keyboard.Listener(on_press=on_press) as listener:
-            # assume 35 seconds until pick up
+            # listen for duration
             t_end = time.time() + call_length
             while time.time() < t_end:
                 if talking == True:
@@ -168,15 +137,13 @@ def main():
                     print('\nCall length is currently {} seconds'.format(call_length))
                     call_length = int(input('Enter a new call_length and hit enter: '))
                     print('Call length is now {} seconds'.format(call_length))
+                else:
+                    pass
                 talking = False
                 talked = True
         
         # hangup
-        try:
-            #app.find_element_by_id('button-hangup').click()
-            print('Hanging up...')
-        except:
-            print('Call already ended...')
+        #end_call(app)
         
         # specify call type as i1 Schedule Call
         element = driver.find_element_by_id('call_east_type_id')
@@ -194,27 +161,199 @@ def main():
             all_options[5].click()
         
         # log call
-        buttons = driver.find_elements_by_name('commit')
+        #buttons = driver.find_elements_by_name('commit')
         #buttons[1].click()
         
-        # next button for sourced call: [23] for sheldon, [22] for next
-        next_click(driver, driver.find_elements_by_tag_name('a')[23])
-        
+        # next button for sourced call
+        next_unreachable = driver.find_element_by_css_selector(".btn.btn-success.pull-right")
+        next_click(driver, next_unreachable)
         call_count += 1
         
         print('Total calls made this session: {}'.format(call_count))
         print('Press "ctrl" then "c" at anytime to quit...')
 
 
+def instructions():
+    '''This function provides text-based instructions'''
+    
+    print(colored('###--- INSTRUCTIONS ---###', 'blue', 'on_white'),
+          '\n\nThis is a text based program to automatically dial',
+          'unreachables on the SIMON platform and automatically log the results.',
+          '\n\nYou will be asked to login to SIMON so the program',
+          'can automatically log calls for you. Once you have logged',
+          'in the program will start calling unreachables for your schools,',
+          'directly from your laptop.\n\n',
+          colored('WHAT YOU NEED TO DO: ','white','on_red'),
+          '\n\nIf someone answers press the "crtl" key on your laptop to',
+          'pause the program while you talk. When you press "ctrl" a menu',
+          'will appear to allow you to schedule an I1 with the press of a key.\n')
+    
+    print('\n\nBegin the program by entering how many seconds you would like',
+          'the program to spend calling each unreachable before hanging up.',
+          'The suggested time is 30 seconds. \nNote that you will be able to adjust',
+          'this later by pressing "ctrl" to pause the program')
+    length = int(input('\nEnter the number of seconds: '))
+   
+    return length
+    
+    
+def initiate_call(driver, number_to_call, in_volume=3, out_volume=8):
+    '''
+    Takes in the driver for the twilio
+    web app and clicks 'call', then mutes
+    the initial dial ringtone by sending 
+    commands to bash.
+    '''
+    # clear
+    driver.find_element_by_id('phone-number').clear()
+        
+    # new number
+    driver.find_element_by_id('phone-number').send_keys(number_to_call)
+    
+    # dial and mute tone
+    driver.find_element_by_id('button-call').click() 
+    os.system('osascript -e "set Volume {}"'.format(in_volume))
+    time.sleep(2.5)
+    os.system('osascript -e "set Volume {}"'.format(out_volume))
+    return
+
+
+def end_call(driver, in_volume=3, out_volume=8):
+    try:
+        print('Hanging up...')
+        driver.find_element_by_id('button-hangup').click()
+        os.system('osascript -e "set Volume {}"'.format(in_volume))
+        time.sleep(.5)
+        os.system('osascript -e "set Volume {}"'.format(out_volume))
+    except:
+        print('Call already ended...')
+    
+    
 def next_click(driver, element_to_click):
+    '''
+    Takes in a driver and the element to click
+    and delays until a new url is loaded, thus
+    ensuring that the new page is loaded before
+    proceeding.
+    '''
     current = driver.current_url
     element_to_click.click()
     while current == driver.current_url:
         time.sleep(.5)
-    print('Next SIMON page loaded..') ###
+        print('loading...')
+    return
+
+
+def next_url(driver, url):
+    '''
+    Takes in a driver and a url to vist and
+    delays until the new url is successfully
+    loaded.
+    '''
+    current = driver.current_url
+    driver.get(url)
+    while current == driver.current_url:
+        time.sleep(.5)
+        print('loading..')
+    return
+    
+
+def app_login(driver, simon_username):
+    '''
+    Takes in the app webdriver and the input
+    email and attempts to login to the webapp
+    based on the database of approved logins.
+    '''
+    next_url(driver,'https://14de8b3c.ngrok.io/login')
+    
+    user = driver.find_element_by_name('username')
+    user.send_keys(simon_username)
+    
+    login_button = driver.find_element_by_css_selector('.btn.btn-default')
+    login_button.click()    
+    
+    print('Authenticating SIMON login...')
+    time.sleep(3)
+
+    try:
+        driver.find_element_by_id('phone-number')
+        print('Authenicated.')
+
+    except:
+        msg_1 = '\n\nYour SIMON login {} is not registered to use this application.'.format(simon_username)
+        msg_2 = '\n Please contact Teghan Nightengale at 613-484-4779 if you believe'
+        msg_3 = '\n you should have privledges to use this program.'
+        privledges = colored(msg_1 + msg_2 + msg_3, 'red')
+        sys.exit(privledges)
+    
     return
     
     
+def simon_login(driver):
+    '''
+    Takes in a webdriver and directs
+    it to the student works website
+    and attemps to login until the
+    website allows access.
+    '''
+    logged_in = False
+    while logged_in == False:
+        driver.get('http://www.studentworks.net/')
+        
+        email = input('Enter your Simon login email: ')
+        password = input('Enter your Simon password: ')    
+        #email = 'smorris@studentworks.com'
+        #password = 'apples'
+        
+        email_input = driver.find_element_by_id('user_email')
+        password_input = driver.find_element_by_id('user_password')
+        
+        email_input.send_keys(email)
+        password_input.send_keys(password)
+        
+        current = driver.current_url
+        driver.find_element_by_name('commit').click()
+        time.sleep(3)
+        
+        if current != driver.current_url:
+            logged_in = True
+            continue
+        else:
+            print('\nInvalid login. Re-enter credentials: \n')
+            continue
+        
+    return email
+
+
+def list_elements(e):
+    '''
+    Prints the indices and text of a 
+    list of selenium webelements.
+    '''
+    for i, j in zip(range(len(e)), e):
+        print(i, j.get_attribute('text'))
+
+
+def get_number(driver):
+    '''
+    Get the current applicants phone number on SIMON.
+    '''
+    phone_number = driver.find_element_by_id('applicant_phone1').get_attribute('value')
+    return phone_number
+
+
+def get_name(driver):
+    '''
+    Get the current applicant's name on SIMON and
+    return a colourized string to be printed to bash.
+    '''
+    first_name = driver.find_element_by_id('applicant_first_name').get_attribute('value')
+    last_name = driver.find_element_by_id('applicant_last_name').get_attribute('value')
+    full_name = first_name + ' ' + last_name
+    colorized = colored(full_name, 'white', 'on_magenta')
+    return colorized
+    
+
 def on_press(key):
     global talking
     try:
