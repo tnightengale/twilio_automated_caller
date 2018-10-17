@@ -46,8 +46,12 @@ def wrong():
     except Exception as e:
         return e
         
-    
-valid = {'tnightengale}
+
+def error_test():
+    try:
+        driver.find_element_by_class_name('error')
+    except:
+        print("yay")
 
 if __name__ == '__main__':
     main()

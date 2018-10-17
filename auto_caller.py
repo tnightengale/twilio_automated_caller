@@ -53,13 +53,7 @@ def main(call_count = 0):
     # Go to phone numbers
     # -------------------
     
-    next_url(driver,'http://www.studentworks.net/recruiting/applicants/list?unreachables=1')
-    
-    # find first name: 30th element in tag_names('a')
-    
-    unreachables = driver.find_elements_by_tag_name('a')[30]
-    
-    next_click(driver, unreachables)
+    go_to_unreachables(driver)
     
     # ----------------
     # load webdial app
@@ -81,7 +75,7 @@ def main(call_count = 0):
         
         talked = False
         
-        #initiate_call(app,current_number)
+        initiate_call(app,current_number)
         
         alert = colored('Press "ctrl" to pause if answered: ', 'red')
         print('\nCurrently calling {} at {}. {}'.format(current_name, current_number, alert))
@@ -119,7 +113,7 @@ def main(call_count = 0):
                     while confirmed == False:
                         try:
                             slot = int(input('Enter the index of the appointment slot: '))
-                            if slot > len(time_slots):
+                            if slot not in range(len(time_slots)):
                                 print('The entered index is greater than the available indices')
                                 continue
                             print('You choose appointment: {}'.format(time_slots[slot].text))
@@ -143,7 +137,7 @@ def main(call_count = 0):
                 talked = True
         
         # hangup
-        #end_call(app)
+        end_call(app)
         
         # specify call type as i1 Schedule Call
         element = driver.find_element_by_id('call_east_type_id')
@@ -161,13 +155,12 @@ def main(call_count = 0):
             all_options[5].click()
         
         # log call
-        #buttons = driver.find_elements_by_name('commit')
-        #buttons[1].click()
+        buttons = driver.find_elements_by_name('commit')
+        buttons[1].click()
         
         # next button for sourced call
-        next_unreachable = driver.find_element_by_css_selector(".btn.btn-success.pull-right")
-        next_click(driver, next_unreachable)
-        call_count += 1
+        call_count = next_call(driver, call_count)
+        
         
         print('Total calls made this session: {}'.format(call_count))
         print('Press "ctrl" then "c" at anytime to quit...')
@@ -197,7 +190,7 @@ def instructions():
     return length
     
     
-def initiate_call(driver, number_to_call, in_volume=3, out_volume=8):
+def initiate_call(driver, number_to_call, in_volume=2, out_volume=6):
     '''
     Takes in the driver for the twilio
     web app and clicks 'call', then mutes
@@ -218,7 +211,7 @@ def initiate_call(driver, number_to_call, in_volume=3, out_volume=8):
     return
 
 
-def end_call(driver, in_volume=3, out_volume=8):
+def end_call(driver, in_volume=2, out_volume=6):
     try:
         print('Hanging up...')
         driver.find_element_by_id('button-hangup').click()
@@ -264,7 +257,7 @@ def app_login(driver, simon_username):
     email and attempts to login to the webapp
     based on the database of approved logins.
     '''
-    next_url(driver,'https://14de8b3c.ngrok.io/login')
+    next_url(driver,'https://a4383b07.ngrok.io/login')
     
     user = driver.find_element_by_name('username')
     user.send_keys(simon_username)
@@ -331,8 +324,7 @@ def list_elements(e):
     list of selenium webelements.
     '''
     for i, j in zip(range(len(e)), e):
-        print(i, j.get_attribute('text'))
-
+        print('#',' [{}]    '.format(i),j.get_attribute('text'))
 
 def get_number(driver):
     '''
@@ -354,6 +346,99 @@ def get_name(driver):
     return colorized
     
 
+
+def unreachables_selection(driver):
+    '''
+    Presents a menu of unreachables.
+    '''
+    menu = driver.find_element_by_class_name('dropdown-menu')
+    menu = menu.find_elements_by_tag_name('a')
+    print(
+            '\n# ---------------------',
+            '\n# Unreachables Menu:   ',
+            '\n# ---------------------',
+            '\n# Index | Choices'
+            )
+    
+    list_elements(menu)
+
+    confirmed = False
+    while confirmed == False:
+        choice = int(input('\nEnter the index of the unreachables you would like to begin calling: '))
+        if choice not in range(len(menu)):
+            print('Invalid index selected.')
+            continue
+        else:
+            text = menu[choice].get_attribute('text')
+            print('You have selected {}. Press "y" to confirm or any other key to reselect: '.format(text))
+            check = input()
+            if check in ['Y','y']:
+                confirmed = True
+                continue
+            else:
+                continue 
+            
+    next_url(driver, menu[choice].get_attribute('href'))
+    
+    return text
+    
+
+def go_to_unreachables(driver):
+    '''
+    Navigates to the unreachables page.
+    Returns an error if it doesn't work.
+    '''
+   
+    next_url(driver,'http://www.studentworks.net/recruiting/')
+    while True:
+        university = unreachables_selection(driver)
+        
+        # find first name: 30th element in tag_names('a')
+        
+        try:
+            unreachables = driver.find_elements_by_tag_name('a')[33]
+            next_click(driver, unreachables)
+            break
+        except:
+            msg_1 = 'There does not appear to be a list of unreachables for {}.'.format(university)
+            msg_2 = '\nCheck SIMON manually to ensure that there is a list of unreachables on the {} page.'.format(university)
+            error = colored('AN ERROR OCCURRED:\n' + msg_1 + msg_2, 'white', 'on_red')
+            print(error)
+            print('\nWould you like to call unreachables from another University?')
+            selection = input('Enter "y" or any other key to exit: ')
+            if selection in ['y','Y']:
+                continue
+            else:
+                quitting = colored('You entered {}. Exiting program...'.format(selection), 'red')
+                sys.exit(quitting)
+
+
+def next_call(driver, call_count):
+        '''
+        try:
+            
+        next_unreachable = driver.find_element_by_css_selector(".btn.btn-success.pull-right")
+        next_click(driver, next_unreachable)
+        call_count += 1
+        except:
+            
+        finally:
+            sys.
+        '''
+        try:
+            next_unreachable = driver.find_element_by_css_selector(".btn.btn-success.pull-right")
+            next_click(driver, next_unreachable)
+            call_count += 1
+        except:
+            try:
+                next_unreachable = driver.find_element_by_css_selector(".btn.btn-default.pull-right")
+                next_click(driver, next_unreachable)
+                call_count += 1
+            except:
+                sys.exit(colored('Error: No button for next call.','red'))
+        
+        return call_count
+    
 def on_press(key):
     global talking
     try:
