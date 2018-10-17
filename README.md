@@ -5,28 +5,11 @@ An autodialer for student painting company to automatically navigate the company
 ## Steps to use program:
 **Note to use this tool you must be affiliated with Student Works painting and have a login for their portal, SIMON.**
 
+## Mac Only (Sorry Windows):
+1. Download the `auto_caller.zip` file from the `dist` folder above.
+2. Double click the `auto_caller.zip` to unzip it. It should unzip and pop out a mac program called `auto_caller`.
+3. Right click (two finger tap on mac) on `auto_caller` and select "Open". You will get an alert saying that the program is from an unidentified developer (Eyyyy Oooohh!). SImply click "Open" on the alert.
 
-1. **To use this program you need to install python packages. To do this you need pip!**
-    1. Open the terminal on your computer: search your mac for 'terminal'. It should look like this:
-    
-    ![Alt text](resources/ss1.png?raw=True 'Terminal')
-    
-    2. Copy and paste this command: `curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py` into terminal as so, and hit enter:
-    
-    ![Alt text](resources/ss2.png?raw=True 'Terminal')
-    
-    3. Copy and paste this command: `sudo python get-pip.py` into terminal and and hit enter.
-  
-  
-  
-  
- 
-2. **Create virtual enviroment and install requirements.txt**
-    1. **NOTE:** The rest of the set up instructions require you to enter commands in terminal, like so : `$ {your command here}`.
-2. Visit the forked Twilio VoIP repo: https://github.com/tnightengale/client-quickstart-python and follow the set-up instructions
-    * You will also need to create a paid twilio account as part of this process.
-    * Once you have the 4 credentials laidout in the README.md of the Twilio VoIP repo, ensure that you run the command `$ cp .env.example .env` to create a copy of the `.env.example` credential file. Then run `$ open -a TextEdit .env` and replace the values `.env ` with your credentials. Continue following the Twilio VoIP README.md setup instructions. 
-3. Save your SIMON credentials as enviroment variables from the bash line as follows:
-    * `$ export SIMON_email=your_email` and `$ export SIMON_pass=your_password`
-4. Note the path of your chrome driver .exe file and replace the set path in the auto_caller.py file
-5. Run `$ python auto_caller.py`
+4. The program will open. **READ THE INSTRUCTIONS** It should look like this:
+
+
