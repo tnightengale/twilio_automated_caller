@@ -47,11 +47,15 @@ def wrong():
         return e
         
 
-def error_test():
-    try:
-        driver.find_element_by_class_name('error')
-    except:
-        print("yay")
+def test(attempts, call=1):
+    for i in range(attempts):
+        update(call)
+        print(call)
+
+
+
+def update(call):
+    call += 1
 
 if __name__ == '__main__':
     main()

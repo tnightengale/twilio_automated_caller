@@ -257,7 +257,7 @@ def app_login(driver, simon_username):
     email and attempts to login to the webapp
     based on the database of approved logins.
     '''
-    next_url(driver,'https://a4383b07.ngrok.io/login')
+    next_url(driver,'https://sw-calling-app.appspot.com/login')
     
     user = driver.find_element_by_name('username')
     user.send_keys(simon_username)
