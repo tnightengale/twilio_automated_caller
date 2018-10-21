@@ -53,8 +53,14 @@ def main(call_count = 0):
     # Go to phone numbers
     # -------------------
     
-    go_to_unreachables(driver)
-    
+    choice = call_choice()
+    if choice == 'u':
+        go_to_unreachables(driver)
+    else:
+        message = colored('That functionality is currently not available. Exiting...','red')
+        sys.exit(message)
+        
+        
     # ----------------
     # load webdial app
     # ----------------
@@ -449,6 +455,18 @@ def on_press(key):
     except AttributeError:
         print('special key {0} pressed'.format(
             key))
+
+def call_choice():
+    while True:
+        print(colored('Would you like to call unreachables or just call names?', 'black', 'on_green'))
+        choice = input('Enter "u" for unreachables or "n" for all names: ')
+        
+        if choice in ['n','u']:
+            break
+        else:
+            print('\Invalid selection')
+            continue
+    return choice
 
 
 if __name__ == '__main__':
