@@ -30,7 +30,7 @@ def main(call_count = 0):
     headless.add_argument("--headless")
     headless.add_argument("---info-bars")
     headless.add_argument("--use-fake-ui-for-media-stream")
-    #chrome_exe_path = os.path.abspath('chromedriver')
+    chrome_exe_path = os.path.abspath('chromedriver')
     chrome_exe_path = os.path.join(sys._MEIPASS, "chromedriver")
     
     # -- SIMON driver -- #
@@ -57,15 +57,12 @@ def main(call_count = 0):
     if choice == 'u':
         go_to_unreachables(driver)
     else:
-        message = colored('That functionality is currently not available. Exiting...','red')
-        sys.exit(message)
-        
-        
+        go_to_names(driver)
+         
     # ----------------
     # load webdial app
     # ----------------
     
-    #next_url(app,'https://14de8b3c.ngrok.io/')
     app_login(app, auth)
     
     # ------------------
@@ -115,6 +112,7 @@ def main(call_count = 0):
                         )
                 selection = input()
                 if selection == 'y':
+                    talked = True ### moved talk
                     confirmed = False
                     while confirmed == False:
                         try:
@@ -140,7 +138,7 @@ def main(call_count = 0):
                 else:
                     pass
                 talking = False
-                talked = True
+                #talked = True ### moved talk
         
         # hangup
         end_call(app)
@@ -195,6 +193,7 @@ def instructions():
    
     return length
     
+
     
 def initiate_call(driver, number_to_call, in_volume=2, out_volume=6):
     '''
@@ -217,6 +216,7 @@ def initiate_call(driver, number_to_call, in_volume=2, out_volume=6):
     return
 
 
+
 def end_call(driver, in_volume=2, out_volume=6):
     try:
         print('Hanging up...')
@@ -226,6 +226,7 @@ def end_call(driver, in_volume=2, out_volume=6):
         os.system('osascript -e "set Volume {}"'.format(out_volume))
     except:
         print('Call already ended...')
+    
     
     
 def next_click(driver, element_to_click):
@@ -243,6 +244,7 @@ def next_click(driver, element_to_click):
     return
 
 
+
 def next_url(driver, url):
     '''
     Takes in a driver and a url to vist and
@@ -256,6 +258,7 @@ def next_url(driver, url):
         print('loading..')
     return
     
+
 
 def app_login(driver, simon_username):
     '''
@@ -288,6 +291,7 @@ def app_login(driver, simon_username):
     return
     
     
+
 def simon_login(driver):
     '''
     Takes in a webdriver and directs
@@ -324,6 +328,7 @@ def simon_login(driver):
     return email
 
 
+
 def list_elements(e):
     '''
     Prints the indices and text of a 
@@ -332,12 +337,15 @@ def list_elements(e):
     for i, j in zip(range(len(e)), e):
         print('#',' [{}]    '.format(i),j.get_attribute('text'))
 
+
+
 def get_number(driver):
     '''
     Get the current applicants phone number on SIMON.
     '''
     phone_number = driver.find_element_by_id('applicant_phone1').get_attribute('value')
     return phone_number
+
 
 
 def get_name(driver):
@@ -353,9 +361,54 @@ def get_name(driver):
     
 
 
+def names_selection(driver):
+    '''
+    Presents a menu of schools.
+    '''
+    elements = driver.find_elements_by_css_selector(".table.table-bordered.table-hover.table-condensed.table-striped")
+    elements = elements[0].find_elements_by_tag_name('tr')
+    schools = []
+    for e in elements:
+        try:
+            a = e.find_element_by_tag_name('a')
+            schools.append(a)
+        except:
+            print('except triggered')
+            pass
+    schools = schools[1:-1]
+    print(
+        '\n# ---------------------',
+        '\n# My Applicants Menu:   ',
+        '\n# ---------------------',
+        '\n# Index | Choices'
+        )
+
+    list_elements(schools)
+
+    confirmed = False
+    while confirmed == False:
+        choice = int(input('\nEnter the index of the list of names you would like to begin calling: '))
+        if choice not in range(len(schools)):
+            print('Invalid index selected.')
+            continue
+        else:
+            text = schools[choice].text
+            print('You have selected {}. Press "y" to confirm or any other key to reselect: '.format(text))
+            check = input()
+            if check in ['Y','y']:
+                confirmed = True
+                continue
+            else:
+                continue 
+            
+    next_url(driver, schools[choice].get_attribute('href'))
+    return text
+    
+
+
 def unreachables_selection(driver):
     '''
-    Presents a menu of unreachables.
+    Presents a menu of unreachables at various schools.
     '''
     menu = driver.find_element_by_class_name('dropdown-menu')
     menu = menu.find_elements_by_tag_name('a')
@@ -389,6 +442,7 @@ def unreachables_selection(driver):
     return text
     
 
+
 def go_to_unreachables(driver):
     '''
     Navigates to the unreachables page.
@@ -419,6 +473,39 @@ def go_to_unreachables(driver):
                 sys.exit(quitting)
 
 
+
+def go_to_names(driver):
+        '''
+        Goes to the SIMON names list and allows people to choose a school 
+        to call names from.
+        '''
+        next_url(driver,'http://www.studentworks.net/recruiting/')
+        while True:
+            university = names_selection(driver)
+            
+            # find first name: 30th element in tag_names('a')
+            
+            try:
+                elements = driver.find_elements_by_css_selector(".table.table-condensed.table-striped.table-bordered")
+                elements = elements[0].find_element_by_tag_name('tbody')
+                first_name = elements.find_element_by_tag_name('a') # find first name
+                next_url(driver, first_name.get_attribute('href'))
+                break
+            except:
+                msg_1 = 'There does not appear to be a list of unreachables for {}.'.format(university)
+                msg_2 = '\nCheck SIMON manually to ensure that there is a list of unreachables on the {} page.'.format(university)
+                error = colored('AN ERROR OCCURRED:\n' + msg_1 + msg_2, 'white', 'on_red')
+                print(error)
+                print('\nWould you like to call unreachables from another University?')
+                selection = input('Enter "y" or any other key to exit: ')
+                if selection in ['y','Y']:
+                    continue
+                else:
+                    quitting = colored('You entered {}. Exiting program...'.format(selection), 'red')
+                    sys.exit(quitting)
+        
+        
+        
 def next_call(driver, call_count):
         '''
         try:
@@ -445,6 +532,8 @@ def next_call(driver, call_count):
         
         return call_count
     
+    
+    
 def on_press(key):
     global talking
     try:
@@ -456,9 +545,11 @@ def on_press(key):
         print('special key {0} pressed'.format(
             key))
 
+
+
 def call_choice():
     while True:
-        print(colored('Would you like to call unreachables or just call names?', 'black', 'on_green'))
+        print(colored('Would you like to call unreachables or just call names?', 'white', 'on_green'))
         choice = input('Enter "u" for unreachables or "n" for all names: ')
         
         if choice in ['n','u']:
@@ -467,7 +558,7 @@ def call_choice():
             print('\Invalid selection')
             continue
     return choice
-
-
+    
+    
 if __name__ == '__main__':
     main()
